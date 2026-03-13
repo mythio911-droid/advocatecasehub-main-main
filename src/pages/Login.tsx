@@ -21,7 +21,7 @@ const Login = () => {
       toast.error("Please enter email and password");
       return;
     }
-    
+
     setIsLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -31,7 +31,19 @@ const Login = () => {
       console.error("Login error:", error);
       let errorMessage = "Failed to login";
       if (error.code) {
-        errorMessage = error.code; // e.g., 'auth/invalid-credential'
+        switch (error.code) {
+          case "auth/user-not-found":
+            errorMessage = "No user found with this email.";
+            break;
+          case "auth/wrong-password":
+            errorMessage = "Incorrect password.";
+            break;
+          case "auth/invalid-email":
+            errorMessage = "Invalid email address.";
+            break;
+          default:
+            errorMessage = error.code;
+        }
       } else if (error.message) {
         errorMessage = error.message.replace("Firebase: Error (", "").replace(").", "").replace("Firebase:", "").trim();
       }
@@ -49,7 +61,22 @@ const Login = () => {
       navigate("/dashboard");
     } catch (error: any) {
       console.error("Google login error:", error);
-      toast.error(error.message || "Failed to login with Google");
+      let errorMessage = "Failed to login with Google";
+      if (error.code) {
+        switch (error.code) {
+          case "auth/popup-closed-by-user":
+            errorMessage = "Login popup was closed before completing the sign-in.";
+            break;
+          case "auth/cancelled-popup-request":
+            errorMessage = "Cancelled popup request. Please try again.";
+            break;
+          default:
+            errorMessage = error.code;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }

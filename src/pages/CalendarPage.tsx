@@ -112,46 +112,37 @@ const CalendarPage = () => {
   };
 
   const handleAddEvent = async () => {
-    if (!eventTitle || !eventTime || !eventType || !user) {
-      toast.error("Please fill all event fields");
+    if (!user) {
+      toast.error("You must be logged in to add an event");
       return;
     }
+
+    if (!eventTitle || !eventDate || !eventTime || !eventType) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
     setIsSubmitting(true);
+
     try {
-      let key = eventDate;
-      let dayNum = selectedDay;
-      let monthNum = currentMonth + 1;
-      let yearNum = currentYear;
-
-      if (!key) {
-        key = `${yearNum}-${String(monthNum).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
-      } else {
-        const [y, m, d] = key.split("-").map(Number);
-        yearNum = y;
-        monthNum = m;
-        dayNum = d;
-        setCurrentYear(y);
-        setCurrentMonth(m - 1);
-      }
-
+      const dateKey = `${eventDate}`;
       await addDoc(collection(db, "events"), {
-        userId: user.uid,
         title: eventTitle,
-        type: eventType,
+        dateKey,
         time: eventTime,
-        dateKey: key,
-        caseId: eventCase || "",
-        createdAt: new Date().toISOString()
+        type: eventType,
+        caseId: eventCase || null,
+        userId: user.uid,
+        email: user.email, // Store the user's email for reminders
       });
 
-      setSelectedDay(dayNum);
+      toast.success("Event added successfully");
       setNewEventOpen(false);
       setEventTitle("");
       setEventDate("");
       setEventTime("");
       setEventType("");
       setEventCase("");
-      toast.success("Event added to calendar");
     } catch (error) {
       console.error("Error adding event:", error);
       toast.error("Failed to add event");
@@ -204,7 +195,7 @@ const CalendarPage = () => {
         </Dialog>
       }
     >
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Calendar Grid */}
         <div className="lg:col-span-2 bg-card rounded-xl border border-border overflow-hidden" style={{ boxShadow: "var(--card-shadow)" }}>
           <div className="px-6 py-4 flex items-center justify-between border-b border-border">
