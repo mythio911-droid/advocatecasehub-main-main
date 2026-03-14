@@ -50,6 +50,7 @@ const CalendarPage = () => {
   const [eventTime, setEventTime] = useState("");
   const [eventType, setEventType] = useState("");
   const [eventCase, setEventCase] = useState("");
+  const [reminderEnabled, setReminderEnabled] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -134,6 +135,8 @@ const CalendarPage = () => {
         caseId: eventCase || null,
         userId: user.uid,
         email: user.email, // Store the user's email for reminders
+        reminder_enabled: reminderEnabled,
+        reminder_sent: false,
       });
 
       toast.success("Event added successfully");
@@ -143,6 +146,7 @@ const CalendarPage = () => {
       setEventTime("");
       setEventType("");
       setEventCase("");
+      setReminderEnabled(false);
     } catch (error) {
       console.error("Error adding event:", error);
       toast.error("Failed to add event");
@@ -186,6 +190,20 @@ const CalendarPage = () => {
                 <Input placeholder="Enter case optionally" className="mt-1.5" value={eventCase} onChange={e => setEventCase(e.target.value)} disabled={isSubmitting} />
               </div>
               <div><Label>Notes</Label><Textarea placeholder="Add notes..." className="mt-1.5" disabled={isSubmitting} /></div>
+
+              <div className="flex items-center space-x-2 py-2">
+                <input
+                  type="checkbox"
+                  id="reminder"
+                  checked={reminderEnabled}
+                  onChange={(e) => setReminderEnabled(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <Label htmlFor="reminder" className="text-sm font-medium cursor-pointer">
+                  Enable WhatsApp Reminder (1 day before)
+                </Label>
+              </div>
+
               <div className="flex gap-3 justify-end">
                 <Button variant="outline" onClick={() => setNewEventOpen(false)} disabled={isSubmitting}>Cancel</Button>
                 <Button onClick={handleAddEvent} disabled={isSubmitting}>{isSubmitting ? "Adding..." : "Add Event"}</Button>

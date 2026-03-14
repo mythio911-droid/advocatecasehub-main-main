@@ -22,24 +22,18 @@ export interface NotificationLog {
 }
 
 /**
- * Send an SMS via Twilio REST API
+ * Send an SMS via local backend server (Port 5001)
  */
 export async function sendSMS(to: string, body: string): Promise<{ success: boolean; sid?: string; error?: string }> {
-    const url = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
-
-    const formData = new URLSearchParams();
-    formData.append("To", to);
-    formData.append("From", TWILIO_PHONE_NUMBER);
-    formData.append("Body", body);
+    const BACKEND_URL = "http://localhost:5001/api/events/test-reminder-manual";
 
     try {
-        const response = await fetch(url, {
+        const response = await fetch(BACKEND_URL, {
             method: "POST",
             headers: {
-                Authorization: "Basic " + btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`),
-                "Content-Type": "application/x-www-form-urlencoded",
+                "Content-Type": "application/json",
             },
-            body: formData.toString(),
+            body: JSON.stringify({ to, body }),
         });
 
         const data = await response.json();
@@ -47,7 +41,7 @@ export async function sendSMS(to: string, body: string): Promise<{ success: bool
         if (response.ok) {
             return { success: true, sid: data.sid };
         } else {
-            return { success: false, error: data.message || "Failed to send SMS" };
+            return { success: false, error: data.error || "Failed to send SMS via backend" };
         }
     } catch (err: any) {
         return { success: false, error: err.message || "Network error" };
